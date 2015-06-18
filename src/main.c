@@ -2,6 +2,7 @@
   
 static Window *s_main_window;
 static TextLayer *s_time_layer;
+static GFont s_time_font;
 
 static void update_time() {
   // Get a tm structure
@@ -34,7 +35,8 @@ static void main_window_load(Window *window) {
   text_layer_set_text_color(s_time_layer, GColorBlack);
 
   // Improve the layout to be more like a watchface
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_LOVED_BY_THE_KING_40));
+  text_layer_set_font(s_time_layer, s_time_font);
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
   layer_add_child(window_get_root_layer(window),
@@ -44,6 +46,9 @@ static void main_window_load(Window *window) {
 static void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
+
+  // Unload GFont
+  fonts_unload_custom_font(s_time_font);
 }
   
 static void init() {

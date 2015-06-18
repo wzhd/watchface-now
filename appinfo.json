@@ -10,7 +10,14 @@
   },
   "appKeys": {},
   "resources": {
-    "media": []
+      "media": [
+          {
+              "type": "font",
+              "name": "FONT_LOVED_BY_THE_KING_40",
+              "file": "LovedbytheKing.ttf",
+              "compatibility": "2.7"
+          }
+      ]
   },
   "targetPlatforms": [
     "aplite",
