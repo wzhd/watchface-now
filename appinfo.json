@@ -18,6 +18,12 @@
               "compatibility": "2.7"
           },
           {
+              "type": "font",
+              "name": "FONT_LOVED_BY_THE_KING_30",
+              "file": "LovedbytheKing.ttf",
+              "compatibility": "2.7"
+          },
+          {
               "type": "png",
               "name": "BG_IMAGE",
               "file": "background.png"

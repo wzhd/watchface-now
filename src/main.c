@@ -2,7 +2,9 @@
   
 static Window *s_main_window;
 static TextLayer *s_time_layer;
+static TextLayer *s_weather_layer;
 static GFont s_time_font;
+static GFont s_weather_font;
 static GBitmap *s_bg_bitmap;
 static BitmapLayer *s_bitmap_layer;
 
@@ -50,14 +52,27 @@ static void main_window_load(Window *window) {
 
   layer_add_child(window_get_root_layer(window),
                   text_layer_get_layer(s_time_layer));
+
+  // Weather Layer
+  s_weather_layer = text_layer_create(GRect(0, 120, 144, 48));
+  text_layer_set_background_color(s_weather_layer, GColorClear);
+  text_layer_set_text_color(s_weather_layer, GColorWhite);
+  text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
+  text_layer_set_text(s_weather_layer, "Loading");
+  s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_LOVED_BY_THE_KING_30));
+  text_layer_set_font(s_weather_layer, s_weather_font);
+  layer_add_child(window_get_root_layer(window),
+                  text_layer_get_layer(s_weather_layer));
 }
 
 static void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
+  text_layer_destroy(s_weather_layer);
 
   // Unload GFont
   fonts_unload_custom_font(s_time_font);
+  fonts_unload_custom_font(s_weather_font);
 
   gbitmap_destroy(s_bg_bitmap);
   bitmap_layer_destroy(s_bitmap_layer);
