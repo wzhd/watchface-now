@@ -9,6 +9,8 @@
     "watchface": true
   },
   "appKeys": {},
+  "capabilities":
+    [ "location" ],
   "resources": {
       "media": [
           {
