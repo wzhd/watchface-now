@@ -82,7 +82,29 @@ static void main_window_unload(Window *window) {
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+  // Store incoming information
+  char temperature_buffer[8];
+  char conditions_buffer[32];
+  static char weather_layer_buffer[32];
 
+  Tuple *t = dict_read_first(iterator);
+  while(t != NULL) {
+    switch(t->key) {
+    case KEY_TEMPERATURE:
+      snprintf(temperature_buffer, sizeof(temperature_buffer), "%dK", (int)t->value->int32);
+      break;
+    case KEY_CONDITIONS:
+      snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", t->value->cstring);
+      break;
+    default:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized.", (int)t->key);
+    }
+
+    t = dict_read_next(iterator);
+  }
+
+  snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", temperature_buffer, conditions_buffer);
+  text_layer_set_text(s_weather_layer, weather_layer_buffer);
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
