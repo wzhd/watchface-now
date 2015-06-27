@@ -4,7 +4,7 @@ static Window *s_main_window;
 static TextLayer *s_time_layer;
 static GFont s_time_font;
 static GBitmap *s_bg_bitmap;
-static BitmapLayer *s_bitmap_layer;
+static Layer *s_layer;
 
 static void update_time() {
   // Get a tm structure
@@ -31,12 +31,15 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
+static void image_layer_update_callback(Layer *layer, GContext *ctx) {
+  graphics_draw_bitmap_in_rect(ctx, s_bg_bitmap, layer_get_bounds(layer));
+}
+
 static void main_window_load(Window *window) {
   s_bg_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BG_IMAGE);
-  s_bitmap_layer = bitmap_layer_create(GRect(0, 0, 144, 144));
-  bitmap_layer_set_bitmap(s_bitmap_layer, s_bg_bitmap);
-  layer_add_child(window_get_root_layer(window),
-                  bitmap_layer_get_layer(s_bitmap_layer));
+  s_layer = layer_create(GRect(0, 0, 144, 144));
+  layer_set_update_proc(s_layer, image_layer_update_callback);
+  layer_add_child(window_get_root_layer(window),s_layer);
 
 
   s_time_layer = text_layer_create(GRect(0, 55, 144, 50));
@@ -60,7 +63,7 @@ static void main_window_unload(Window *window) {
   fonts_unload_custom_font(s_time_font);
 
   gbitmap_destroy(s_bg_bitmap);
-  bitmap_layer_destroy(s_bitmap_layer);
+  layer_destroy(s_layer);
 }
 
 static void init() {
