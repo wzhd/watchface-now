@@ -1,5 +1,5 @@
 #include <pebble.h>
-  
+
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static GFont s_time_font;
@@ -33,7 +33,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void main_window_load(Window *window) {
   s_bg_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BG_IMAGE);
-  s_bitmap_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
+  s_bitmap_layer = bitmap_layer_create(GRect(0, 0, 144, 144));
   bitmap_layer_set_bitmap(s_bitmap_layer, s_bg_bitmap);
   layer_add_child(window_get_root_layer(window),
                   bitmap_layer_get_layer(s_bitmap_layer));
@@ -62,7 +62,7 @@ static void main_window_unload(Window *window) {
   gbitmap_destroy(s_bg_bitmap);
   bitmap_layer_destroy(s_bitmap_layer);
 }
-  
+
 static void init() {
   // Create main Window element and assign to pointer
   s_main_window = window_create();
