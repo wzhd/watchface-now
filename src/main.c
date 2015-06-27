@@ -32,7 +32,19 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 static void image_layer_update_callback(Layer *layer, GContext *ctx) {
-  graphics_draw_bitmap_in_rect(ctx, s_bg_bitmap, layer_get_bounds(layer));
+  // Get image center
+  GRect img_bounds = gbitmap_get_bounds(s_bg_bitmap);
+  GPoint src_ic = grect_center_point(&img_bounds);
+
+  // Get context center
+  GRect ctx_bounds = layer_get_bounds(layer);
+  GPoint ctx_ic = grect_center_point(&ctx_bounds);
+
+  // Angle of rotation
+  int angle = (45 * TRIG_MAX_ANGLE) / 360;
+
+  // Draw!
+  graphics_draw_rotated_bitmap(ctx, s_bg_bitmap, src_ic, angle, ctx_ic);
 }
 
 static void main_window_load(Window *window) {
