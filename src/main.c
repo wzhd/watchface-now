@@ -82,8 +82,13 @@ static void init() {
   window_stack_push(s_main_window, true);
   update_time();
 
+  GPoint center = {
+    .x = 72,
+    .y = 72,
+  };
   for (int i = 0; i < NUM_MAP_PATHS; ++i) {
     s_map_paths[i] = gpath_create(&MAP_PATHS[i]);
+    gpath_move_to(s_map_paths[i], center);
   }
 
   tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
