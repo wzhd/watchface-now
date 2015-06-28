@@ -45,12 +45,12 @@ static void main_window_load(Window *window) {
   layer_add_child(window_get_root_layer(window),s_layer);
 
 
-  s_time_layer = text_layer_create(GRect(0, 55, 144, 50));
+  s_time_layer = text_layer_create(GRect(0, 136, 144, 32));
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, GColorBlack);
 
   // Improve the layout to be more like a watchface
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_30_BLACK));
+  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_28));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
   layer_add_child(window_get_root_layer(window),
