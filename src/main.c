@@ -1,10 +1,12 @@
 #include <pebble.h>
+#include "main.h"
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static GFont s_time_font;
-static GBitmap *s_bg_bitmap;
+
 static Layer *s_layer;
+static GPath *s_map_paths[NUM_MAP_PATHS];
 
 static void update_time() {
   // Get a tm structure
@@ -32,11 +34,13 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 static void image_layer_update_callback(Layer *layer, GContext *ctx) {
-  graphics_draw_bitmap_in_rect(ctx, s_bg_bitmap, layer_get_bounds(layer));
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  for (int i = 0; i < NUM_MAP_PATHS; ++i) {
+    gpath_draw_filled(ctx, s_map_paths[i]);
+  }
 }
 
 static void main_window_load(Window *window) {
-  s_bg_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BG_IMAGE);
   s_layer = layer_create(GRect(0, 0, 144, 144));
   layer_set_update_proc(s_layer, image_layer_update_callback);
   layer_add_child(window_get_root_layer(window),s_layer);
@@ -62,7 +66,10 @@ static void main_window_unload(Window *window) {
   // Unload GFont
   fonts_unload_custom_font(s_time_font);
 
-  gbitmap_destroy(s_bg_bitmap);
+  for (int i = 0; i < NUM_MAP_PATHS; ++i) {
+    gpath_destroy(s_map_paths[i]);
+  }
+
   layer_destroy(s_layer);
 }
 
@@ -79,6 +86,11 @@ static void init() {
   // Show the Window on the watch, with animated=true
   window_stack_push(s_main_window, true);
   update_time();
+
+  for (int i = 0; i < NUM_MAP_PATHS; ++i) {
+    s_map_paths[i] = gpath_create(&MAP_PATHS[i]);
+  }
+
   tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 }
 
