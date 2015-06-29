@@ -30,11 +30,21 @@ static void update_time() {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
+
+  if (tick_time->tm_sec == 0) {
+    layer_mark_dirty(s_layer);
+  }
 }
 
 static void image_layer_update_callback(Layer *layer, GContext *ctx) {
+  time_t now = time(NULL);
+  int32_t angle = TRIG_MAX_ANGLE * (now % 86400) / 86400;
+  // https://sslimgs.xkcd.com/comics/now/00h00m.png is 12 hours off 00:00 UTC
+  angle += TRIG_MAX_ANGLE * 0.5;
+
   graphics_context_set_fill_color(ctx, GColorBlack);
   for (int i = 0; i < NUM_MAP_PATHS; ++i) {
+    gpath_rotate_to(s_map_paths[i], angle);
     gpath_draw_filled(ctx, s_map_paths[i]);
   }
 }
