@@ -13,15 +13,15 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 
   // Create a long-lived buffer that persists across multiple calls
-  static char buffer[] = "00:00:00";
+  static char buffer[] = "00:00";
 
   // Write the current hours and minutes into the buffer
   if(clock_is_24h_style() == true) {
     // Use 24 hour format
-    strftime(buffer, sizeof("00:00:00"), "%H:%M:%S", tick_time);
+    strftime(buffer, sizeof("00:00"), "%H:%M", tick_time);
   } else {
     // Use 12 hour format
-    strftime(buffer, sizeof("00:00:00"), "%I:%M:%S", tick_time);
+    strftime(buffer, sizeof("00:00"), "%I:%M", tick_time);
   }
 
   // Display this time on the TextLayer
@@ -31,9 +31,8 @@ static void update_time() {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 
-  if (tick_time->tm_sec == 0) {
-    layer_mark_dirty(s_layer);
-  }
+  // In fact this is not necessary. update_time causes a draw of everything.
+  layer_mark_dirty(s_layer);
 }
 
 static void image_layer_update_callback(Layer *layer, GContext *ctx) {
@@ -101,7 +100,7 @@ static void init() {
     gpath_move_to(s_map_paths[i], center);
   }
 
-  tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 }
 
 static void deinit() {
