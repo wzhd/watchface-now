@@ -84,8 +84,10 @@ static void main_window_unload(Window *window) {
 }
 
 void set_timezone_offset(int offset) {
-  utc_offset_seconds = (int32_t)offset;
-  layer_mark_dirty(s_layer);
+  if (offset != utc_offset_seconds) {
+    utc_offset_seconds = (int32_t)offset;
+    layer_mark_dirty(s_layer);
+  }
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
