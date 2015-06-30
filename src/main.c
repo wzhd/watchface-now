@@ -87,6 +87,19 @@ void set_timezone_offset(int offset) {
   if (offset != utc_offset_seconds) {
     utc_offset_seconds = (int32_t)offset;
     layer_mark_dirty(s_layer);
+
+    // Timezone just changed. The stored value may need to be updated.
+    int32_t stored_offset = persist_read_int(KEY_TIMEOFFSET);
+    if (stored_offset != offset) {
+      // Save timezone offset info in persistant storage
+      status_t status;
+      status = persist_write_int(KEY_TIMEOFFSET, (int32_t)offset);
+      if (status < 0) {
+        APP_LOG(APP_LOG_LEVEL_WARNING, "Storing timezone failed: %d", (int)status);
+      } else {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Stored timezone: %d", (int)offset);
+      }
+    }
   }
 }
 
@@ -175,6 +188,11 @@ static void init() {
 
   // Open AppMessage
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+
+  // Get stored timezone offset. If it hasn't been set, the return value will be 0.
+  int32_t offset = persist_read_int(KEY_TIMEOFFSET);
+  set_timezone_offset(offset);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Using stored timezone offset: %d", (int)offset);
 
   request_timezone();
 }
