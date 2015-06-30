@@ -1,6 +1,10 @@
 #include <pebble.h>
 #include "main.h"
 
+#define KEY_TIMEOFFSET 0
+
+static int32_t utc_offset_seconds = 0;
+
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 
@@ -37,7 +41,8 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void image_layer_update_callback(Layer *layer, GContext *ctx) {
   time_t now = time(NULL);
-  int32_t angle = TRIG_MAX_ANGLE * (now % 86400) / 86400;
+  now += utc_offset_seconds;
+  int32_t angle = (int32_t)((now % 86400) / 86400.0 * TRIG_MAX_ANGLE);
   // https://sslimgs.xkcd.com/comics/now/00h00m.png is 12 hours off 00:00 UTC
   angle += TRIG_MAX_ANGLE * 0.5;
 
@@ -77,6 +82,40 @@ static void main_window_unload(Window *window) {
   layer_destroy(s_layer);
 }
 
+void set_timezone_offset(int offset) {
+  utc_offset_seconds = (int32_t)offset;
+  layer_mark_dirty(s_layer);
+}
+
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+
+  Tuple *t = dict_read_first(iterator);
+  while(t != NULL) {
+    switch(t->key) {
+    case KEY_TIMEOFFSET:
+      set_timezone_offset((int)t->value->int32);
+      break;
+    default:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized.", (int)t->key);
+    }
+
+    t = dict_read_next(iterator);
+  }
+
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
+
 static void init() {
   // Create main Window element and assign to pointer
   s_main_window = window_create();
@@ -101,6 +140,15 @@ static void init() {
   }
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+
+  // Register callbacks
+  app_message_register_inbox_received(inbox_received_callback);
+  app_message_register_inbox_dropped(inbox_dropped_callback);
+  app_message_register_outbox_failed(outbox_failed_callback);
+  app_message_register_outbox_sent(outbox_sent_callback);
+
+  // Open AppMessage
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 }
 
 static void deinit() {

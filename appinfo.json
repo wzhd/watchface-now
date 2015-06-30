@@ -8,7 +8,9 @@
   "watchapp": {
     "watchface": true
   },
-  "appKeys": {},
+  "appKeys": {
+    "KEY_TIMEOFFSET": 0
+  },
   "resources": {
     "media": []
   },
