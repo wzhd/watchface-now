@@ -4,6 +4,7 @@
 #define KEY_TIMEOFFSET 0
 
 static int32_t utc_offset_seconds = 0;
+static int request_timezone_tries_left = 10;  // Try this many times before giving up.
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -102,6 +103,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     t = dict_read_next(iterator);
   }
 
+  // Got timezone info. Don't request.
+  if (request_timezone_tries_left > 0) {
+    request_timezone_tries_left = 0;
+  }
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
@@ -114,6 +119,25 @@ static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResul
 
 static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
+
+static void request_timezone(void) {
+  if (request_timezone_tries_left > 0) {
+    request_timezone_tries_left -= 1;
+  } else {
+    return;
+  }
+
+  // Sending anything is okay
+  DictionaryIterator *iter;
+  app_message_outbox_begin(&iter);
+  dict_write_uint8(iter, 0, 0);
+
+  // Send the message!
+  app_message_outbox_send();
+
+  // Run this function again in 1000ms in case there were failures.
+  app_timer_register(1000, (AppTimerCallback)request_timezone, NULL);
 }
 
 static void init() {
@@ -149,6 +173,8 @@ static void init() {
 
   // Open AppMessage
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+
+  request_timezone();
 }
 
 static void deinit() {
