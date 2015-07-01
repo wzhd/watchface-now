@@ -3,8 +3,10 @@
 
 #define KEY_TIMEOFFSET 0
 
+#ifdef PBL_BW
 static int32_t utc_offset_seconds = 0;
 static int request_timezone_tries_left = 10;  // Try this many times before giving up.
+#endif
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -42,7 +44,11 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void image_layer_update_callback(Layer *layer, GContext *ctx) {
   time_t now = time(NULL);
+
+#ifdef PBL_BW
   now += utc_offset_seconds;
+#endif
+
   int32_t angle = (int32_t)((now % 86400) / 86400.0 * TRIG_MAX_ANGLE);
   // https://sslimgs.xkcd.com/comics/now/00h00m.png is 12 hours off 00:00 UTC
   angle += TRIG_MAX_ANGLE * 0.5;
@@ -83,6 +89,7 @@ static void main_window_unload(Window *window) {
   layer_destroy(s_layer);
 }
 
+#ifdef PBL_BW
 void set_timezone_offset(int offset) {
   if (offset != utc_offset_seconds) {
     utc_offset_seconds = (int32_t)offset;
@@ -102,6 +109,7 @@ void set_timezone_offset(int offset) {
     }
   }
 }
+#endif
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
@@ -109,7 +117,11 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   while(t != NULL) {
     switch(t->key) {
     case KEY_TIMEOFFSET:
+
+#ifdef PBL_BW
       set_timezone_offset((int)t->value->int32);
+#endif
+
       break;
     default:
       APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized.", (int)t->key);
@@ -118,10 +130,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     t = dict_read_next(iterator);
   }
 
+#ifdef PBL_BW
   // Got timezone info. Don't request.
   if (request_timezone_tries_left > 0) {
     request_timezone_tries_left = 0;
   }
+#endif
+
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
@@ -136,6 +151,7 @@ static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
+#ifdef PBL_BW
 static void request_timezone(void) {
   if (request_timezone_tries_left > 0) {
     request_timezone_tries_left -= 1;
@@ -154,6 +170,7 @@ static void request_timezone(void) {
   // Run this function again in 1000ms in case there were failures.
   app_timer_register(1000, (AppTimerCallback)request_timezone, NULL);
 }
+#endif
 
 static void init() {
   // Create main Window element and assign to pointer
@@ -189,12 +206,15 @@ static void init() {
   // Open AppMessage
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
+#ifdef PBL_BW
   // Get stored timezone offset. If it hasn't been set, the return value will be 0.
   int32_t offset = persist_read_int(KEY_TIMEOFFSET);
   set_timezone_offset(offset);
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Using stored timezone offset: %d", (int)offset);
 
   request_timezone();
+#endif
+
 }
 
 static void deinit() {
